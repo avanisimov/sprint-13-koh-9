@@ -33,12 +33,21 @@ class CatalogItemViewHolder(
             .load(viewData.item.imageUrl)
             .into(binding.image)
         binding.title.text = viewData.item.name
-        binding.price.text = "${viewData.item.price / 100}/${viewData.item.unit}"
+
+        val temp: Float = (viewData.item.price.toFloat() / 100)
+        val tempString = String.format("%.2f", temp)
+        binding.price.text = "$tempString Р/${viewData.item.unit}"
 
         if (viewData.count != null) {
-            binding.addToCart.visibility = View.GONE
-            binding.countContainer.visibility = View.VISIBLE
-            binding.count.text = viewData.count.toString()
+            if (viewData.count==0){
+                binding.addToCart.visibility = View.VISIBLE
+                binding.countContainer.visibility = View.GONE
+            }
+            else {
+                binding.addToCart.visibility = View.GONE
+                binding.countContainer.visibility = View.VISIBLE
+                binding.count.text = viewData.count.toString()
+            }
         }
     }
 
