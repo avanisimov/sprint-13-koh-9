@@ -100,6 +100,9 @@ class MainActivity : AppCompatActivity() {
                                 )
                             )
                         }
+                        if (cartItems.isNotEmpty()){
+                            binding.cartEmptyTitle.visibility = View.GONE
+                        }
                         cartItemsAdapter.setItems(cartItems)
                         it.copy(count = 1)
                     } else {
@@ -159,6 +162,9 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 cartItemsAdapter.setItems(cartItems)
+                if (cartItems.isEmpty()){
+                    binding.cartEmptyTitle.visibility = View.VISIBLE
+                }
             }
         }
     }
