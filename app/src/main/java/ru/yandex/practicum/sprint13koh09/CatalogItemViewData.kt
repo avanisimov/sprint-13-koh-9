@@ -33,7 +33,10 @@ class CatalogItemViewHolder(
             .load(viewData.item.imageUrl)
             .into(binding.image)
         binding.title.text = viewData.item.name
-        binding.price.text = "${viewData.item.price / 100} Р/${viewData.item.unit}"
+
+        val temp: Float = (viewData.item.price.toFloat() / 100)
+        val tempString = String.format("%.2f", temp)
+        binding.price.text = "$tempString Р/${viewData.item.unit}"
 
         if (viewData.count != null) {
             if (viewData.count==0){
