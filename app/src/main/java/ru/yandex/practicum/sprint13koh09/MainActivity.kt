@@ -162,8 +162,8 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 cartItemsAdapter.setItems(cartItems)
-                if (cartItems.isNotEmpty()){
-                    binding.cartEmptyTitle.visibility = View.GONE
+                if (cartItems.isEmpty()){
+                    binding.cartEmptyTitle.visibility = View.VISIBLE
                 }
             }
         }
