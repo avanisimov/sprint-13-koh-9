@@ -100,6 +100,9 @@ class MainActivity : AppCompatActivity() {
                                 )
                             )
                         }
+                        if (cartItems.isNotEmpty()){
+                            binding.cartEmptyTitle.visibility = View.GONE
+                        }
                         cartItemsAdapter.setItems(cartItems)
                         it.copy(count = 1)
                     } else {
