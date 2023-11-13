@@ -162,6 +162,9 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 cartItemsAdapter.setItems(cartItems)
+                if (cartItems.isNotEmpty()){
+                    binding.cartEmptyTitle.visibility = View.GONE
+                }
             }
         }
     }
