@@ -7,6 +7,7 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.badge.BadgeDrawable
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -49,7 +50,9 @@ class MainActivity : AppCompatActivity() {
             onBottomNavigationItemSelected(it.itemId)
         }
 
-        setUpCatalog()
+        val badge = binding.bottomNavigation.getOrCreateBadge(R.id.cart)
+
+        setUpCatalog(badge)
         setUpCart()
 
         serverApi.getCatalog()
@@ -79,7 +82,7 @@ class MainActivity : AppCompatActivity() {
             })
     }
 
-    private fun setUpCatalog() {
+    private fun setUpCatalog(badge: BadgeDrawable) {
         binding.catalogItemsList.apply {
             layoutManager = GridLayoutManager(this@MainActivity, 2)
             adapter = catalogItemsAdapter
@@ -109,6 +112,7 @@ class MainActivity : AppCompatActivity() {
                         it
                     }
                 }
+                badge.number = cartItems.size
                 catalogItemsAdapter.setItems(catalogItems)
             }
             onAddCountClickListener = OnAddCountClickListener { item ->
