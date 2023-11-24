@@ -7,7 +7,6 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.badge.BadgeDrawable
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -52,14 +51,11 @@ class MainActivity : AppCompatActivity() {
 
         val badge = binding.bottomNavigation.getOrCreateBadge(R.id.cart)
 
-        setUpCatalog(badge)
-        setUpCart()
-
         serverApi.getCatalog()
             .enqueue(object : Callback<CatalogResponse> {
                 override fun onResponse(
                     call: Call<CatalogResponse>,
-                    response: Response<CatalogResponse>
+                    response: Response<CatalogResponse>,
                 ) {
                     val body = response.body()
                     if (response.code() == 200 && body != null) {
@@ -78,99 +74,103 @@ class MainActivity : AppCompatActivity() {
                 override fun onFailure(call: Call<CatalogResponse>, t: Throwable) {
                     Log.e(TAG, "onFailure: $call $t")
                 }
-
             })
-    }
+        fun setUpCatalog() {
+            binding.catalogItemsList.apply {
+                layoutManager = GridLayoutManager(this@MainActivity, 2)
+                adapter = catalogItemsAdapter
+                itemAnimator = null
+            }
 
-    private fun setUpCatalog(badge: BadgeDrawable) {
-        binding.catalogItemsList.apply {
-            layoutManager = GridLayoutManager(this@MainActivity, 2)
-            adapter = catalogItemsAdapter
-            itemAnimator = null
-        }
-
-        catalogItemsAdapter.setItems(catalogItems)
-        with(catalogItemsAdapter) {
-            onAddToCartClickListener = OnAddToCartClickListener { item ->
-                catalogItems = catalogItems.map {
-                    if (it.id == item.id) {
-                        cartItems = cartItems.toMutableList().apply {
-                            add(
-                                CartItem(
-                                    id = UUID.randomUUID().toString(),
-                                    catalogItem = it.item,
-                                    count = 1
+            catalogItemsAdapter.setItems(catalogItems)
+            with(catalogItemsAdapter) {
+                onAddToCartClickListener = OnAddToCartClickListener { item ->
+                    catalogItems = catalogItems.map {
+                        if (it.id == item.id) {
+                            cartItems = cartItems.toMutableList().apply {
+                                add(
+                                    CartItem(
+                                        id = UUID.randomUUID().toString(),
+                                        catalogItem = it.item,
+                                        count = 1
+                                    )
                                 )
-                            )
+                            }
+                            if (cartItems.isNotEmpty()) {
+                                binding.cartEmptyTitle.visibility = View.GONE
+                            }
+                            cartItemsAdapter.setItems(cartItems)
+                            it.copy(count = 1)
+                        } else {
+                            it
                         }
-                        if (cartItems.isNotEmpty()){
-                            binding.cartEmptyTitle.visibility = View.GONE
+                    }
+                    badge.number = cartItems.size
+                    catalogItemsAdapter.setItems(catalogItems)
+                }
+                onAddCountClickListener = OnAddCountClickListener { item ->
+                    catalogItems = catalogItems.map {
+                        if (it.id == item.id) {
+                            it.copy(count = (it.count ?: 0) + 1)
+                        } else {
+                            it
                         }
-                        cartItemsAdapter.setItems(cartItems)
-                        it.copy(count = 1)
-                    } else {
-                        it
                     }
+                    badge.number = cartItems.size
+                    catalogItemsAdapter.setItems(catalogItems)
                 }
-                badge.number = cartItems.size
-                catalogItemsAdapter.setItems(catalogItems)
-            }
-            onAddCountClickListener = OnAddCountClickListener { item ->
-                catalogItems = catalogItems.map {
-                    if (it.id == item.id) {
-                        it.copy(count = (it.count ?: 0) + 1)
-                    } else {
-                        it
+                onRemoveCountClickListener = OnRemoveCountClickListener { item ->
+                    catalogItems = catalogItems.map {
+                        if (it.id == item.id) {
+                            it.copy(count = (it.count ?: 0) - 1)
+                        } else {
+                            it
+                        }
                     }
+                    badge.number = cartItems.size
+                    catalogItemsAdapter.setItems(catalogItems)
                 }
-                catalogItemsAdapter.setItems(catalogItems)
             }
-            onRemoveCountClickListener = OnRemoveCountClickListener { item ->
-                catalogItems = catalogItems.map {
-                    if (it.id == item.id) {
-                        it.copy(count = (it.count ?: 0) - 1)
-                    } else {
-                        it
-                    }
-                }
-                catalogItemsAdapter.setItems(catalogItems)
-            }
-        }
-    }
-
-    private fun setUpCart() {
-        binding.cartItemsList.apply {
-            layoutManager = LinearLayoutManager(this@MainActivity)
-            adapter = cartItemsAdapter
-            itemAnimator = null
         }
 
-        cartItemsAdapter.setItems(cartItems)
-        with(cartItemsAdapter) {
-            onAddCountClickListener = OnCartAddCountClickListener { item ->
-                cartItems = cartItems.map {
-                    if (it.id == item.id) {
-                        it.copy(count = it.count + 1)
-                    } else {
-                        it
-                    }
-                }
-                cartItemsAdapter.setItems(cartItems)
+        fun setUpCart() {
+            binding.cartItemsList.apply {
+                layoutManager = LinearLayoutManager(this@MainActivity)
+                adapter = cartItemsAdapter
+                itemAnimator = null
             }
-            onRemoveCountClickListener = OnCartRemoveCountClickListener { item ->
-                cartItems = cartItems.map {
-                    if (it.id == item.id) {
-                        it.copy(count = it.count - 1)
-                    } else {
-                        it
+
+            cartItemsAdapter.setItems(cartItems)
+            with(cartItemsAdapter) {
+                onAddCountClickListener = OnCartAddCountClickListener { item ->
+                    cartItems = cartItems.map {
+                        if (it.id == item.id) {
+                            it.copy(count = it.count + 1)
+                        } else {
+                            it
+                        }
                     }
+                    cartItemsAdapter.setItems(cartItems)
+                    badge.number = cartItems.size
                 }
-                cartItemsAdapter.setItems(cartItems)
-                if (cartItems.isEmpty()){
-                    binding.cartEmptyTitle.visibility = View.VISIBLE
+                onRemoveCountClickListener = OnCartRemoveCountClickListener { item ->
+                    cartItems = cartItems.map {
+                        if (it.id == item.id) {
+                            it.copy(count = it.count - 1)
+                        } else {
+                            it
+                        }
+                    }
+                    cartItemsAdapter.setItems(cartItems)
+                    if (cartItems.isEmpty()) {
+                        binding.cartEmptyTitle.visibility = View.VISIBLE
+                    }
+                    badge.number = cartItems.size
                 }
             }
         }
+        setUpCatalog()
+        setUpCart()
     }
 
     private fun onBottomNavigationItemSelected(itemId: Int): Boolean {
