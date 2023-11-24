@@ -7,6 +7,8 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.badge.BadgeDrawable
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -37,6 +39,10 @@ class MainActivity : AppCompatActivity() {
     var catalogItems = emptyList<CatalogItemViewData>()
     var cartItems = emptyList<CartItem>()
 
+    private val badge: BadgeDrawable by lazy {
+        binding.bottomNavigation.getOrCreateBadge(R.id.cart)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(LayoutInflater.from(this))
@@ -44,19 +50,16 @@ class MainActivity : AppCompatActivity() {
 
         changeCurrentScreenMode(ScreenMode.CATALOG)
         binding.toolbar.setTitle(R.string.catalog_title)
-        binding.bottomNavigation.selectedItemId = R.id.catalog
+
         binding.bottomNavigation.setOnItemSelectedListener {
             onBottomNavigationItemSelected(it.itemId)
         }
-
-        setUpCatalog()
-        setUpCart()
 
         serverApi.getCatalog()
             .enqueue(object : Callback<CatalogResponse> {
                 override fun onResponse(
                     call: Call<CatalogResponse>,
-                    response: Response<CatalogResponse>
+                    response: Response<CatalogResponse>,
                 ) {
                     val body = response.body()
                     if (response.code() == 200 && body != null) {
@@ -75,8 +78,9 @@ class MainActivity : AppCompatActivity() {
                 override fun onFailure(call: Call<CatalogResponse>, t: Throwable) {
                     Log.e(TAG, "onFailure: $call $t")
                 }
-
             })
+        setUpCatalog()
+        setUpCart()
     }
 
     private fun setUpCatalog() {
@@ -100,7 +104,7 @@ class MainActivity : AppCompatActivity() {
                                 )
                             )
                         }
-                        if (cartItems.isNotEmpty()){
+                        if (cartItems.isNotEmpty()) {
                             binding.cartEmptyTitle.visibility = View.GONE
                         }
                         cartItemsAdapter.setItems(cartItems)
@@ -109,6 +113,7 @@ class MainActivity : AppCompatActivity() {
                         it
                     }
                 }
+                badge.number = cartItems.size
                 catalogItemsAdapter.setItems(catalogItems)
             }
             onAddCountClickListener = OnAddCountClickListener { item ->
@@ -119,6 +124,7 @@ class MainActivity : AppCompatActivity() {
                         it
                     }
                 }
+                badge.number = cartItems.size
                 catalogItemsAdapter.setItems(catalogItems)
             }
             onRemoveCountClickListener = OnRemoveCountClickListener { item ->
@@ -129,6 +135,7 @@ class MainActivity : AppCompatActivity() {
                         it
                     }
                 }
+                badge.number = cartItems.size
                 catalogItemsAdapter.setItems(catalogItems)
             }
         }
@@ -152,6 +159,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 cartItemsAdapter.setItems(cartItems)
+                badge.number = cartItems.size
             }
             onRemoveCountClickListener = OnCartRemoveCountClickListener { item ->
                 cartItems = cartItems.map {
@@ -162,9 +170,10 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 cartItemsAdapter.setItems(cartItems)
-                if (cartItems.isEmpty()){
+                if (cartItems.isEmpty()) {
                     binding.cartEmptyTitle.visibility = View.VISIBLE
                 }
+                badge.number = cartItems.size
             }
         }
     }
