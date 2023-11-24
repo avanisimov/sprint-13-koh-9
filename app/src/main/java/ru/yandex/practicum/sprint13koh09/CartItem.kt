@@ -22,14 +22,14 @@ class CartItemViewHolder(
         LayoutInflater.from(
             parent.context
         ), parent, false
-    )
+    ),
 ) : RecyclerView.ViewHolder(
     binding.root
 ) {
 
     fun bind(item: CartItem) {
         binding.root
-
+        binding.sum.text = String.format("%.2f", item.sum.toDouble() / 100).replace('.', ',')
         Glide
             .with(binding.root.context)
             .load(item.catalogItem.imageUrl)
