@@ -7,6 +7,8 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.badge.BadgeDrawable
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -37,6 +39,10 @@ class MainActivity : AppCompatActivity() {
     var catalogItems = emptyList<CatalogItemViewData>()
     var cartItems = emptyList<CartItem>()
 
+    private val badge: BadgeDrawable by lazy {
+        binding.bottomNavigation.getOrCreateBadge(R.id.cart)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(LayoutInflater.from(this))
@@ -44,12 +50,10 @@ class MainActivity : AppCompatActivity() {
 
         changeCurrentScreenMode(ScreenMode.CATALOG)
         binding.toolbar.setTitle(R.string.catalog_title)
-        binding.bottomNavigation.selectedItemId = R.id.catalog
+
         binding.bottomNavigation.setOnItemSelectedListener {
             onBottomNavigationItemSelected(it.itemId)
         }
-
-        val badge = binding.bottomNavigation.getOrCreateBadge(R.id.cart)
 
         serverApi.getCatalog()
             .enqueue(object : Callback<CatalogResponse> {
@@ -75,102 +79,103 @@ class MainActivity : AppCompatActivity() {
                     Log.e(TAG, "onFailure: $call $t")
                 }
             })
-        fun setUpCatalog() {
-            binding.catalogItemsList.apply {
-                layoutManager = GridLayoutManager(this@MainActivity, 2)
-                adapter = catalogItemsAdapter
-                itemAnimator = null
-            }
-
-            catalogItemsAdapter.setItems(catalogItems)
-            with(catalogItemsAdapter) {
-                onAddToCartClickListener = OnAddToCartClickListener { item ->
-                    catalogItems = catalogItems.map {
-                        if (it.id == item.id) {
-                            cartItems = cartItems.toMutableList().apply {
-                                add(
-                                    CartItem(
-                                        id = UUID.randomUUID().toString(),
-                                        catalogItem = it.item,
-                                        count = 1
-                                    )
-                                )
-                            }
-                            if (cartItems.isNotEmpty()) {
-                                binding.cartEmptyTitle.visibility = View.GONE
-                            }
-                            cartItemsAdapter.setItems(cartItems)
-                            it.copy(count = 1)
-                        } else {
-                            it
-                        }
-                    }
-                    badge.number = cartItems.size
-                    catalogItemsAdapter.setItems(catalogItems)
-                }
-                onAddCountClickListener = OnAddCountClickListener { item ->
-                    catalogItems = catalogItems.map {
-                        if (it.id == item.id) {
-                            it.copy(count = (it.count ?: 0) + 1)
-                        } else {
-                            it
-                        }
-                    }
-                    badge.number = cartItems.size
-                    catalogItemsAdapter.setItems(catalogItems)
-                }
-                onRemoveCountClickListener = OnRemoveCountClickListener { item ->
-                    catalogItems = catalogItems.map {
-                        if (it.id == item.id) {
-                            it.copy(count = (it.count ?: 0) - 1)
-                        } else {
-                            it
-                        }
-                    }
-                    badge.number = cartItems.size
-                    catalogItemsAdapter.setItems(catalogItems)
-                }
-            }
-        }
-
-        fun setUpCart() {
-            binding.cartItemsList.apply {
-                layoutManager = LinearLayoutManager(this@MainActivity)
-                adapter = cartItemsAdapter
-                itemAnimator = null
-            }
-
-            cartItemsAdapter.setItems(cartItems)
-            with(cartItemsAdapter) {
-                onAddCountClickListener = OnCartAddCountClickListener { item ->
-                    cartItems = cartItems.map {
-                        if (it.id == item.id) {
-                            it.copy(count = it.count + 1)
-                        } else {
-                            it
-                        }
-                    }
-                    cartItemsAdapter.setItems(cartItems)
-                    badge.number = cartItems.size
-                }
-                onRemoveCountClickListener = OnCartRemoveCountClickListener { item ->
-                    cartItems = cartItems.map {
-                        if (it.id == item.id) {
-                            it.copy(count = it.count - 1)
-                        } else {
-                            it
-                        }
-                    }
-                    cartItemsAdapter.setItems(cartItems)
-                    if (cartItems.isEmpty()) {
-                        binding.cartEmptyTitle.visibility = View.VISIBLE
-                    }
-                    badge.number = cartItems.size
-                }
-            }
-        }
         setUpCatalog()
         setUpCart()
+    }
+
+    private fun setUpCatalog() {
+        binding.catalogItemsList.apply {
+            layoutManager = GridLayoutManager(this@MainActivity, 2)
+            adapter = catalogItemsAdapter
+            itemAnimator = null
+        }
+
+        catalogItemsAdapter.setItems(catalogItems)
+        with(catalogItemsAdapter) {
+            onAddToCartClickListener = OnAddToCartClickListener { item ->
+                catalogItems = catalogItems.map {
+                    if (it.id == item.id) {
+                        cartItems = cartItems.toMutableList().apply {
+                            add(
+                                CartItem(
+                                    id = UUID.randomUUID().toString(),
+                                    catalogItem = it.item,
+                                    count = 1
+                                )
+                            )
+                        }
+                        if (cartItems.isNotEmpty()) {
+                            binding.cartEmptyTitle.visibility = View.GONE
+                        }
+                        cartItemsAdapter.setItems(cartItems)
+                        it.copy(count = 1)
+                    } else {
+                        it
+                    }
+                }
+                badge.number = cartItems.size
+                catalogItemsAdapter.setItems(catalogItems)
+            }
+            onAddCountClickListener = OnAddCountClickListener { item ->
+                catalogItems = catalogItems.map {
+                    if (it.id == item.id) {
+                        it.copy(count = (it.count ?: 0) + 1)
+                    } else {
+                        it
+                    }
+                }
+                badge.number = cartItems.size
+                catalogItemsAdapter.setItems(catalogItems)
+            }
+            onRemoveCountClickListener = OnRemoveCountClickListener { item ->
+                catalogItems = catalogItems.map {
+                    if (it.id == item.id) {
+                        it.copy(count = (it.count ?: 0) - 1)
+                    } else {
+                        it
+                    }
+                }
+                badge.number = cartItems.size
+                catalogItemsAdapter.setItems(catalogItems)
+            }
+        }
+    }
+
+    private fun setUpCart() {
+        binding.cartItemsList.apply {
+            layoutManager = LinearLayoutManager(this@MainActivity)
+            adapter = cartItemsAdapter
+            itemAnimator = null
+        }
+
+        cartItemsAdapter.setItems(cartItems)
+        with(cartItemsAdapter) {
+            onAddCountClickListener = OnCartAddCountClickListener { item ->
+                cartItems = cartItems.map {
+                    if (it.id == item.id) {
+                        it.copy(count = it.count + 1)
+                    } else {
+                        it
+                    }
+                }
+                cartItemsAdapter.setItems(cartItems)
+                badge.number = cartItems.size
+            }
+            onRemoveCountClickListener = OnCartRemoveCountClickListener { item ->
+                cartItems = cartItems.map {
+                    if (it.id == item.id) {
+                        it.copy(count = it.count - 1)
+                    } else {
+                        it
+                    }
+                }
+                cartItemsAdapter.setItems(cartItems)
+                if (cartItems.isEmpty()) {
+                    binding.cartEmptyTitle.visibility = View.VISIBLE
+                }
+                badge.number = cartItems.size
+            }
+        }
     }
 
     private fun onBottomNavigationItemSelected(itemId: Int): Boolean {
